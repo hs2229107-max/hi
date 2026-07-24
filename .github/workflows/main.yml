@@ -36,12 +36,8 @@ jobs:
         find x/ -name "App.java" -exec cp {} app/src/main/java/com/example/hi/App.java \; 2>/dev/null || true
         find x/ -name "*.java" -exec cp {} app/src/main/java/com/example/hi/ \; 2>/dev/null || true
 
-        # 3. التأكد من إنشاء ملف layout سليم وغير فارغ
-        find x/ -name "*.xml" -exec cp {} app/src/main/res/layout/activity_main.xml \; 2>/dev/null || true
-
-        # إذا كان الملف فارغاً أو غير موجود، أنشئ واجهة بسيطة تلقائياً
-        if [ ! -s app/src/main/res/layout/activity_main.xml ]; then
-            cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+        # 3. كتابة ملف Layout سليم ومكتمل بنسبة 100% لتفادي أخطاء الـ XML المكسورة
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -49,11 +45,11 @@ jobs:
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hi World"
+        android:text="Hi App"
+        android:textSize="24sp"
         android:layout_centerInParent="true"/>
 </RelativeLayout>
 EOF
-        fi
 
         # 4. إعداد ملفات Gradle وتفعيل AndroidX
         echo 'android.useAndroidX=true' > gradle.properties
@@ -91,7 +87,6 @@ EOF
         }
         EOF
 
-        # 5. إنشاء ملف AndroidManifest مخصص باسم hi
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             <application
