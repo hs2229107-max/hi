@@ -27,17 +27,42 @@ jobs:
 
     - name: Setup Android Project Files
       run: |
-        # 1. إنشاء هيكلية مشروع أندرويد
+        # 1. إنشاء هيكلية المشروع
         mkdir -p app/src/main/java/com/example/hi
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/xml
 
-        # 2. نقل وتنظيم ملفات الجافا والـ XML المرفوعة
-        find x/ -name "App.java" -exec cp {} app/src/main/java/com/example/hi/App.java \; 2>/dev/null || true
+        # 2. نقل ملفات الجافا
         find x/ -name "*.java" -exec cp {} app/src/main/java/com/example/hi/ \; 2>/dev/null || true
-        find x/ -name "*.xml" -exec cp {} app/src/main/res/layout/activity_main.xml \; 2>/dev/null || true
 
-        # 3. إعداد ملفات Gradle وتفعيل AndroidX
+        # 3. إنشاء ملف layout نظيف وصحيح لضمان عدم وجود أخطاء صياغة XML
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hi App"
+        android:textSize="24sp"
+        android:layout_centerInParent="true"/>
+</RelativeLayout>
+EOF
+
+        # 4. إنشاء ملف device_admin.xml بشكل مستقل داخل مجلد res/xml
+        cat << 'EOF' > app/src/main/res/xml/device_admin.xml
+<?xml version="1.0" encoding="utf-8"?>
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <force-lock />
+        <watch-login />
+    </uses-policies>
+</device-admin>
+EOF
+
+        # 5. إعداد ملفات Gradle وتفعيل AndroidX
         echo 'android.useAndroidX=true' > gradle.properties
         echo 'android.enableJetifier=true' >> gradle.properties
 
@@ -73,11 +98,15 @@ jobs:
         }
         EOF
 
-        # 4. إنشاء ملف AndroidManifest مخصص باسم hi
+        # 6. إنشاء ملف AndroidManifest متوافق
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+            <uses-permission android:name="android.permission.VIBRATE" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
             <application
-                android:allowBackup="true"
+                android:allowBackup="false"
                 android:label="hi"
                 android:supportsRtl="true"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar">
